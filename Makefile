@@ -3,7 +3,7 @@ CXX = x86_64-w64-mingw32-g++
 CXXFLAGS = -static -mconsole -Ilib
 
 # All executables we want to build
-TARGETS = bin/get-dword.exe bin/set-dword.exe  bin/set-string.exe bin/get-string.exe
+TARGETS = bin/get-dword.exe bin/set-dword.exe  bin/set-string.exe bin/get-string.exe bin/regtool.exe
 
 # Default target: build everything
 all: $(TARGETS)
