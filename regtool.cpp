@@ -53,18 +53,18 @@ int main(int argc, char* argv[]) {
             std::cout << val << "\n";
         }
         else if (command == "set-dword") {
-            if (argc != 4) throw std::runtime_error("Usage: set-dword <RegistryKeyPath> <ValueName> <Value>");
+            if (argc != 5) throw std::runtime_error("Usage: set-dword <RegistryKeyPath> <ValueName> <Value>");
             RegistryKey key(root, keyPath, true);   // set: create if missing
             DWORD val = std::strtoul(argv[4], nullptr, 0);
             key.setDword(argv[3], val);
         }
         else if (command == "get-string") {
-            if (argc != 3) throw std::runtime_error("Usage: get-string <RegistryKeyPath> <ValueName>");
+            if (argc != 4) throw std::runtime_error("Usage: get-string <RegistryKeyPath> <ValueName>");
             RegistryKey key(root, keyPath, false);
             std::cout << key.getString(argv[3]) << "\n";
         }
         else if (command == "set-string") {
-            if (argc != 4) throw std::runtime_error("Usage: set-string <RegistryKeyPath> <ValueName> <Value>");
+            if (argc != 5) throw std::runtime_error("Usage: set-string <RegistryKeyPath> <ValueName> <Value>");
             RegistryKey key(root, keyPath, true);
             key.setString(argv[3], argv[4]);
         }
