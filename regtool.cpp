@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
 
         if (command == "get-dword") {
-            if (argc != 3) throw std::runtime_error("Usage: get-dword <RegistryKeyPath> <ValueName>");
+            if (argc != 4) throw std::runtime_error("Usage: get-dword <RegistryKeyPath> <ValueName>");
             RegistryKey key(root, keyPath, false);  // get: don't create
             DWORD val = key.getDword(argv[3]);
             std::cout << val << "\n";
