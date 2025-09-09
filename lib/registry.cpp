@@ -1,7 +1,8 @@
 #include "registry.h"
 #include <sstream>
+#include <vector>
 
-RegistryKey::RegistryKey(HKEY root, const std::string& subKey, bool createIfMissing) {
+RegistryKey::RegistryKey(HKEY root, const std::string& subKey, REGSAM accessbool,bool createIfMissing) {
     LONG result;
     if (createIfMissing) {
         result = RegCreateKeyExA(root,
@@ -25,24 +26,41 @@ RegistryKey::RegistryKey(HKEY root, const std::string& subKey, bool createIfMiss
 }
 
 RegistryKey::~RegistryKey() {
-    if (hKey) RegCloseKey(hKey);
+    if (hKey) {
+        RegCloseKey(hKey);
+    }
+}
+
+RegistryKey::RegistryKey(RegistryKey&& other) noexcept : hKey(other.hKey) {
+    other.hKey = nullptr;
+}
+
+RegistryKey& RegistryKey::operator=(RegistryKey&& other) noexcept {
+    if (this != &other) {
+        if (hKey) {
+            RegCloseKey(hKey);
+        }
+        hKey = other.hKey;
+        other.hKey = nullptr;
+    }
+    return *this;
 }
 
 // ----------------- DWORD -----------------
-DWORD RegistryKey::getDword(const std::string& name, DWORD defaultVal) {
-    DWORD type = 0, data = 0, size = sizeof(data);
-    LONG result = RegQueryValueExA(hKey, name.c_str(), NULL, &type, (LPBYTE)&data, &size);
+std::optional<DWORD> RegistryKey::getDword(const std::string& name) const {
+    DWORD type = 0;
+    DWORD data = 0;
+    DWORD size = sizeof(data);
+    LONG result = RegQueryValueExA(hKey, name.c_str(), nullptr, &type, reinterpret_cast<LPBYTE>(&data), &size);
 
+    if (result == ERROR_FILE_NOT_FOUND) {
+        return std::nullopt; // explicitly missing
+    }
     if (result != ERROR_SUCCESS) {
-        // If you want missing keys to use default instead of throwing:
-        if (result == ERROR_FILE_NOT_FOUND)
-            return defaultVal;
-
         std::ostringstream oss;
-        oss << "Failed to read DWORD value '" << name << "' (Error " << result << ")";
+        oss << "Failed to read DWORD registry value '" << name << "' (Error " << result << ")";
         throw std::runtime_error(oss.str());
     }
-
     if (type != REG_DWORD) {
         std::ostringstream oss;
         oss << "Registry value '" << name << "' is not a DWORD (type=" << type << ")";
@@ -51,6 +69,28 @@ DWORD RegistryKey::getDword(const std::string& name, DWORD defaultVal) {
 
     return data;
 }
+//DWORD RegistryKey::getDword(const std::string& name, DWORD defaultVal) {
+//DWORD type = 0, data = 0, size = sizeof(data);
+//    LONG result = RegQueryValueExA(hKey, name.c_str(), NULL, &type, (LPBYTE)&data, &size);
+//
+//    if (result != ERROR_SUCCESS) {
+//        // If you want missing keys to use default instead of throwing:
+//        if (result == ERROR_FILE_NOT_FOUND)
+//            return defaultVal;
+//
+//        std::ostringstream oss;
+//        oss << "Failed to read DWORD value '" << name << "' (Error " << result << ")";
+//        throw std::runtime_error(oss.str());
+//    }
+//
+//    if (type != REG_DWORD) {
+//        std::ostringstream oss;
+//        oss << "Registry value '" << name << "' is not a DWORD (type=" << type << ")";
+//        throw std::runtime_error(oss.str());
+//    }
+//
+//    return data;
+//}
 
 
 void RegistryKey::setDword(const std::string& name, DWORD value) {

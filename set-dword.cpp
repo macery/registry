@@ -23,15 +23,15 @@ int main(int argc, char* argv[]) {
 
     RegistryKey key(HKEY_LOCAL_MACHINE, keyPath , true);
     try {
-       DWORD current = key.getDword(valueDword, std::numeric_limits<DWORD>::max());
-    if (current == std::numeric_limits<DWORD>::max()) {
+       auto current = key.getDword(valueDword );
+    if (!current) {
       // Key/value didn’t exist → create
          key.setDword(valueDword, value);
          std::cout << "Value created: " << valueDword << " = " << value << "\n";
 }   else if (current != value) {
       // Key/value exists but differs → update
         key.setDword(valueDword, value);
-        std::cout << "Value updated: " << valueDword << " from " << current
+        std::cout << "Value updated: " << valueDword << " from " << *current
               << " to " << value << "\n";
 }   else {
     // Already correct → no change
@@ -41,10 +41,13 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: " << e.what() << "\n";
         return 2;  // error code for library failure
     }
-    DWORD afterSet = key.getDword(valueDword);
+    auto afterSet = key.getDword(valueDword);
+    if (!afterSet){
+        std::cerr << "Values still doesn't exist!";
+    }
     if (afterSet != value) {
         std::cerr << "Value for " << valueDword << " Not set correctly!\n";
-        std::cerr << "Expected: " << value << " Got: " << afterSet << "\n";
+        std::cerr << "Expected: " << value << " Got: " << *afterSet << "\n";
         return 2;
     }
 return 0;

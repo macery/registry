@@ -29,9 +29,15 @@ HKEY parseRootKey(std::string& path) {
     throw std::runtime_error("Unknown root key: " + firstPart);
 }
 
-//DWORD convertToDWORD(){
-
-//}
+DWORD convertToDWORD(char* inVal){
+char* endPtr = nullptr;
+unsigned long val = std::strtoul(inVal, &endPtr, 0); // base 0 allows 0x... hex
+if (*endPtr != '\0') {
+    std::cerr << "Invlaid DWORD value: " << inVal << "\n";
+    return 1;
+}
+return static_cast<DWORD>(val);
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
@@ -48,9 +54,17 @@ int main(int argc, char* argv[]) {
 
         if (command == "get-dword") {
             if (argc != 4) throw std::runtime_error("Usage: get-dword <RegistryKeyPath> <ValueName>");
+            
             RegistryKey key(root, keyPath, false);  // get: don't create
-            DWORD val = key.getDword(argv[3]);
-            std::cout << val << "\n";
+            auto val = key.getDword(argv[3]);
+            if (!val)
+            {
+                std::cout << "Value does not exist\n";
+            }
+            else
+            {
+                std::cout << *val << "\n";
+            }
         }
         else if (command == "set-dword") {
             if (argc != 5) throw std::runtime_error("Usage: set-dword <RegistryKeyPath> <ValueName> <Value>");
